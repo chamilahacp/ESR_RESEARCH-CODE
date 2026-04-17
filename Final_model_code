@@ -28,8 +28,8 @@ drive.mount('/content/drive')
 # =========================================================
 # PATHS
 # =========================================================
-CSV_PATH = Path("/content/drive/My Drive/x/p2/P5p.csv")
-SAVE_DIR = Path("/content/drive/My Drive/x/p")
+CSV_PATH = Path("/content/drive/My Drive/p.csv")
+SAVE_DIR = Path("/content/drive/My Drive/x")
 FIG_DIR = SAVE_DIR / "figures"
 
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
