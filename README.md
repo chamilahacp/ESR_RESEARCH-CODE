@@ -1,4 +1,4 @@
-# Integrated Remote Sensing–Machine Learning Framework for Predicting Plant Air Pollution Tolerance Index (APTI)
+# An Integrated Remote Sensing-Machine Learning Framework for Assessing Plant Air Pollution 1 Tolerance Using Satellite-Drived Air Quality, Reanalysis Meteorological Data
 
 This repository contains the scripts, notebooks, and software information used for the study on predicting Air Pollution Tolerance Index (APTI) of *Pterocarpus indicus* using satellite-derived air pollutant exposure, meteorological variables, and machine-learning models.
 
