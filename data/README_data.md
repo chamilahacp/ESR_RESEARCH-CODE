@@ -6,14 +6,14 @@ This project uses a tabular dataset containing the final predictor variables and
 - `A` : Air Pollution Tolerance Index (APTI)
 
 ## Predictor variables
-- `N6` : NO₂ exposure variable
-- `S4` : SO₂ exposure variable
-- `T4` : temperature variable
-- `P5` : PM₂.₅-related variable
-- `O5` : O₃ exposure variable
-- `R4` : rainfall variable
-- `H5` : relative humidity variable
-- `S`  : deciduous-state indicator
+- `N6` : NO₂ exposure variable - 6 month exposure 
+- `S4` : SO₂ exposure variable - 2 month exposure 
+- `T4` : temperature variable - 2 month exposure 
+- `P5` : PM₂.₅-AOD drived variable - 3 month exposure 
+- `O5` : O₃ exposure variable month exposure 
+- `R4` : rainfall variablemonth exposure 
+- `H5` : relative humidity variable month exposure 
+- `S`  : deciduous-state indicator - only for deciduous
 
 ## Notes
 - Missing values were removed before analysis.
