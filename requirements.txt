@@ -1,6 +1,6 @@
 The analysis was conducted using Python (version 3.12.13) in a cloud-based Google Colab environment. The following libraries were used:
 NumPy (2.0.2), Pandas (2.2.2), Scikit-learn (1.6.1), Matplotlib (3.10.0), Seaborn (0.13.2), XGBoost (3.2.0), and SHAP (0.51.0). 
-The workflow was implemented using Jupyter Notebook/Google Colab, and the code and execution environment are provided via a publicly accessible GitHub repository to ensure reproducibility.
+The workflow was implemented using Google Colab, and the code and execution environment are provided via a publicly accessible GitHub repository to ensure reproducibility.
 All analyses were performed using standard CPU-based computations without requiring specialized hardware.
 
 requirements
