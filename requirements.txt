@@ -1,0 +1,28 @@
+requirements
+Python: 3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]
+numpy: 2.0.2
+pandas: 2.2.2
+scikit-learn: 1.6.1
+matplotlib: 3.10.0
+seaborn: 0.13.2
+xgboost: 3.2.0
+shap: 0.51.0
+
+#CHECK
+import sys
+import numpy
+import pandas
+import sklearn
+import matplotlib
+import seaborn
+import xgboost
+import shap
+
+print("Python:", sys.version)
+print("numpy:", numpy.__version__)
+print("pandas:", pandas.__version__)
+print("scikit-learn:", sklearn.__version__)
+print("matplotlib:", matplotlib.__version__)
+print("seaborn:", seaborn.__version__)
+print("xgboost:", xgboost.__version__)
+print("shap:", shap.__version__)
