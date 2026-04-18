@@ -1,0 +1,217 @@
+# =========================================================
+# Final thesis models (RF, GBR, XGB, SVR) - GitHub use
+# =========================================================
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import shap
+from pathlib import Path
+
+# sklearn
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
+from sklearn.inspection import PartialDependenceDisplay
+
+# xgboost
+from xgboost import XGBRegressor
+
+# =========================================================
+# PATHS
+# =========================================================
+CSV_PATH = Path("data/p.csv")
+SAVE_DIR = Path("results")
+FIG_DIR = SAVE_DIR / "figures"
+
+SAVE_DIR.mkdir(parents=True, exist_ok=True)
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+TARGET = "A"
+PREDICTORS = ["N6", "S4", "T4", "P5", "O5", "R4", "H5", "S"]
+
+# =========================================================
+# LOAD DATA
+# =========================================================
+df = pd.read_csv(CSV_PATH)
+data = df[[TARGET] + PREDICTORS].apply(pd.to_numeric, errors="coerce").dropna().reset_index(drop=True)
+
+X = data[PREDICTORS]
+y = data[TARGET]
+
+# split
+idx_all = np.arange(len(data))
+idx_tr, idx_te = train_test_split(idx_all, test_size=0.30, random_state=42)
+
+X_train, X_test = X.iloc[idx_tr], X.iloc[idx_te]
+y_train, y_test = y.iloc[idx_tr], y.iloc[idx_te]
+
+# =========================================================
+# HELPERS
+# =========================================================
+def metrics(y_true, y_pred):
+    return (
+        r2_score(y_true, y_pred),
+        np.sqrt(mean_squared_error(y_true, y_pred)),
+        mean_absolute_error(y_true, y_pred)
+    )
+
+def print_block(name, ytr, ytr_hat, yte, yte_hat):
+    r2_tr, rmse_tr, mae_tr = metrics(ytr, ytr_hat)
+    r2_te, rmse_te, mae_te = metrics(yte, yte_hat)
+
+    print(f"\n=== {name} ===")
+    print(f"Train | R²={r2_tr:.3f} RMSE={rmse_tr:.3f} MAE={mae_tr:.3f}")
+    print(f" Test | R²={r2_te:.3f} RMSE={rmse_te:.3f} MAE={mae_te:.3f}")
+
+def save_preds(name, ytr_hat, yte_hat):
+    out = data.copy()
+    out["set"] = "none"
+    out["A_pred"] = np.nan
+
+    out.loc[idx_tr, "set"] = "train"
+    out.loc[idx_te, "set"] = "test"
+    out.loc[idx_tr, "A_pred"] = ytr_hat
+    out.loc[idx_te, "A_pred"] = yte_hat
+
+    path = SAVE_DIR / f"{name}_preds.csv"
+    out.to_csv(path, index=False)
+    print("Saved:", path)
+
+def plot_obs(ytr, ytr_hat, yte, yte_hat, title, save_name=None):
+    plt.figure(figsize=(6, 6))
+    plt.scatter(ytr, ytr_hat, label="Train")
+    plt.scatter(yte, yte_hat, label="Test", color="red")
+
+    mn = min(ytr.min(), yte.min(), np.min(ytr_hat), np.min(yte_hat))
+    mx = max(ytr.max(), yte.max(), np.max(ytr_hat), np.max(yte_hat))
+
+    plt.plot([mn, mx], [mn, mx], "k--")
+    plt.xlabel("Observed")
+    plt.ylabel("Predicted")
+    plt.title(title)
+    plt.legend()
+    plt.tight_layout()
+
+    if save_name is not None:
+        plt.savefig(FIG_DIR / save_name, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_pdp(model, name, save_name=None):
+    fig, ax = plt.subplots(3, 3, figsize=(10, 8))
+    ax = ax.flatten()
+
+    for i, f in enumerate(PREDICTORS):
+        PartialDependenceDisplay.from_estimator(model, X_train, [f], ax=ax[i])
+        ax[i].grid(False)
+
+    for j in range(len(PREDICTORS), len(ax)):
+        ax[j].axis("off")
+
+    plt.suptitle(f"PDP - {name}")
+    plt.tight_layout()
+
+    if save_name is not None:
+        plt.savefig(FIG_DIR / save_name, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_shap_tree(model, name, save_name=None):
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer(X_test)
+
+    shap.summary_plot(shap_values, X_test, show=False)
+
+    if save_name is not None:
+        plt.savefig(FIG_DIR / save_name, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+# =========================================================
+# MODELS
+# =========================================================
+
+# RF
+rf = RandomForestRegressor(
+    n_estimators=198, max_depth=11, max_features="sqrt",
+    min_samples_leaf=2, min_samples_split=11,
+    bootstrap=False, random_state=42
+)
+rf.fit(X_train, y_train)
+rf_tr = rf.predict(X_train)
+rf_te = rf.predict(X_test)
+
+print_block("RF", y_train, rf_tr, y_test, rf_te)
+plot_obs(y_train, rf_tr, y_test, rf_te, "RF", "RF_obs_pred.png")
+save_preds("RF", rf_tr, rf_te)
+plot_pdp(rf, "RF", "RF_pdp.png")
+plot_shap_tree(rf, "RF", "RF_shap.png")
+
+# GBR
+gbr = GradientBoostingRegressor(
+    n_estimators=221,
+    learning_rate=0.011503610204456165,
+    max_depth=5,
+    min_samples_split=9,
+    subsample=0.9560021367270265,
+    min_samples_leaf=1,
+    max_features="sqrt",
+    random_state=42
+)
+gbr.fit(X_train, y_train)
+gbr_tr = gbr.predict(X_train)
+gbr_te = gbr.predict(X_test)
+
+print_block("GBR", y_train, gbr_tr, y_test, gbr_te)
+plot_obs(y_train, gbr_tr, y_test, gbr_te, "GBR", "GBR_obs_pred.png")
+save_preds("GBR", gbr_tr, gbr_te)
+plot_pdp(gbr, "GBR", "GBR_pdp.png")
+plot_shap_tree(gbr, "GBR", "GBR_shap.png")
+
+# XGB
+XGB_PARAMS = dict(
+    objective="reg:squarederror",
+    tree_method="hist",
+    random_state=42,
+    n_estimators=335,
+    learning_rate=0.046205133,
+    max_depth=4,
+    min_child_weight=9,
+    subsample=0.8363333,
+    colsample_bytree=0.831545958,
+    gamma=0.0000321,
+    reg_alpha=0.00076524,
+    reg_lambda=0.014,
+    n_jobs=-1
+)
+
+xgb = XGBRegressor(**XGB_PARAMS)
+xgb.fit(X_train, y_train)
+xgb_tr = xgb.predict(X_train)
+xgb_te = xgb.predict(X_test)
+
+print_block("XGB", y_train, xgb_tr, y_test, xgb_te)
+plot_obs(y_train, xgb_tr, y_test, xgb_te, "XGB", "XGB_obs_pred.png")
+save_preds("XGB", xgb_tr, xgb_te)
+plot_pdp(xgb, "XGB", "XGB_pdp.png")
+plot_shap_tree(xgb, "XGB", "XGB_shap.png")
+
+# SVR
+svr = Pipeline([
+    ("scaler", StandardScaler()),
+    ("svr", SVR(C=44.16068895118583, epsilon=1.2164139351417065, gamma="scale", kernel="rbf"))
+])
+
+svr.fit(X_train, y_train)
+svr_tr = svr.predict(X_train)
+svr_te = svr.predict(X_test)
+
+print_block("SVR", y_train, svr_tr, y_test, svr_te)
+plot_obs(y_train, svr_tr, y_test, svr_te, "SVR", "SVR_obs_pred.png")
+save_preds("SVR", svr_tr, svr_te)
+plot_pdp(svr, "SVR", "SVR_pdp.png")
