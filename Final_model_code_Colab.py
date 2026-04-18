@@ -1,5 +1,5 @@
 # =========================================================
-# Final thesis models (RF, GBR, XGB, SVR)
+# Final thesis models (RF, GBR, XGB, SVR)-CoLab use
 # =========================================================
 
 import numpy as np
