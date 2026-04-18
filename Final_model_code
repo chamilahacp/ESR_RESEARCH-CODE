@@ -27,6 +27,8 @@ drive.mount('/content/drive')
 
 # =========================================================
 # PATHS
+from pathlib import Path
+
 # =========================================================
 CSV_PATH = Path("/content/drive/My Drive/p.csv")
 SAVE_DIR = Path("/content/drive/My Drive/x")
@@ -145,8 +147,9 @@ plot_shap_tree(rf, "RF")
 
 # GBR
 gbr = GradientBoostingRegressor(
-    n_estimators=221, learning_rate=0.0115,
-    max_depth=5, subsample=0.95,
+    n_estimators=221, learning_rate=0.011503610204456165,
+    max_depth=5,    min_samples_split=9,
+    subsample=0.956,min_samples_leaf=1,max_features="sqrt",
     random_state=42
 )
 gbr.fit(X_train, y_train)
@@ -161,10 +164,23 @@ plot_shap_tree(gbr, "GBR")
 
 
 # XGB
-xgb = XGBRegressor(
-    n_estimators=335, learning_rate=0.046,
-    max_depth=4, random_state=42
+XGB_PARAMS = dict(
+    objective="reg:squarederror",
+    tree_method="hist",
+    random_state=42,
+    n_estimators=335,
+    learning_rate=0.046205133,
+    max_depth=4,
+    min_child_weight=9,
+    subsample=0.8363333,
+    colsample_bytree=0.831545958,
+    gamma=0.0000321,
+    reg_alpha=0.00076524,
+    reg_lambda=0.014,
+    n_jobs=-1
 )
+
+xgb = XGBRegressor(**XGB_PARAMS)
 xgb.fit(X_train, y_train)
 xgb_tr = xgb.predict(X_train)
 xgb_te = xgb.predict(X_test)
@@ -179,7 +195,7 @@ plot_shap_tree(xgb, "XGB")
 # SVR (FIXED)
 svr = Pipeline([
     ("scaler", StandardScaler()),
-    ("svr", SVR(C=44.16, epsilon=1.21, kernel="rbf"))
+    ("svr", SVR(C=44.16068895118583, epsilon=1.2164139351417065, gamma="scale", kernel="rbf"))
 ])
 
 svr.fit(X_train, y_train)
